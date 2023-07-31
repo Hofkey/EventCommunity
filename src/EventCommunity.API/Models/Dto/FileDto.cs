@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EventCommunity.API.Models
+namespace EventCommunity.API.Models.Dto
 {
-    public class FilePOCO
+    public class FileDto
     {
         public int Id { get; set; }
 

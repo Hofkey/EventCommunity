@@ -1,55 +1,107 @@
-﻿using EventCommunity.Core.Services.Register;
+﻿using AutoMapper;
+using EventCommunity.API.Models;
+using EventCommunity.API.Models.Dto;
+using EventCommunity.Core.Entities;
+using EventCommunity.Core.Enums;
+using EventCommunity.Core.Exceptions;
 using EventCommunity.Core.Services.User;
+using EventCommunity.Shared.Security.Encryption;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace EventCommunity.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class UserController : ControllerBase
     {
+        private readonly IMapper mapper;
         private readonly IUserService userService;
-        private readonly IRegisterService registerService;
 
-        public UserController(IUserService userService,
-            IRegisterService registerService)
+        public UserController(IMapper mapper,
+            IUserService userService)
         {
+            this.mapper = mapper;
             this.userService = userService;
-            this.registerService = registerService;
+        }
+
+        [HttpGet]
+        public ActionResult<List<UserDto>> Get()
+        {
+            return Ok(mapper.Map<List<UserDto>>(userService.GetUsers()));
         }
 
         // GET: api/<UserController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<UserController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult<List<User>> GetUser(int id)
         {
-            return "value";
+            try
+            {
+                return Ok(userService.GetUser(id));
+            }
+            catch (EntityDoesNotExistException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        // POST api/<UserController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult<int>> CreateUser([FromBody] NewUserDto newUser)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var user = mapper.Map<User>(newUser);
+
+            user.Password = PasswordHelper.GetHash(newUser.Password);
+
+            try
+            {
+                return Ok(await userService.AddUser(user));
+            }
+            catch (DuplicateEntityException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // PUT api/<UserController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{id}/role")]
+        public async Task<ActionResult> UpdateUserRole(int id, [FromBody] UserRole userRole)
         {
+            try
+            {
+                await userService.ChangeUserRole(id, userRole);
+                return Ok();
+            }
+            catch (EntityDoesNotExistException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
-        // DELETE api/<UserController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpPut("{id}/password")]
+        public async Task<ActionResult> ChangeUserPassword(int id, [FromBody] PasswordChange passwordChange)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await userService.ChangeUserPassword(id,
+                    passwordChange.OldPassword,
+                    passwordChange.NewPassword);
+
+                return Ok(result);
+            }
+            catch (EntityDoesNotExistException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

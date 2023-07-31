@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EventCommunity.Infrastructure.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20230208214400_InitialCreation")]
-    partial class InitialCreation
+    [Migration("20230712172443_AddedEvents")]
+    partial class AddedEvents
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,42 @@ namespace EventCommunity.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("EventCommunity.Core.Entities.CommunityEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CreatorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("End")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsCountdownEvent")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("Start")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatorId");
+
+                    b.ToTable("CommunityEvents");
+                });
 
             modelBuilder.Entity("EventCommunity.Core.Entities.Post", b =>
                 {
@@ -43,6 +79,12 @@ namespace EventCommunity.Infrastructure.Migrations
 
                     b.Property<DateTime>("Posted")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("RatingNegative")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RatingPositive")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -64,17 +106,14 @@ namespace EventCommunity.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AuthorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Extension")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PostId")
                         .HasColumnType("int");
@@ -87,32 +126,6 @@ namespace EventCommunity.Infrastructure.Migrations
                     b.HasIndex("PostId");
 
                     b.ToTable("PostFiles");
-                });
-
-            modelBuilder.Entity("EventCommunity.Core.Entities.PostRating", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Positive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PostRatings");
                 });
 
             modelBuilder.Entity("EventCommunity.Core.Entities.RegisterRequest", b =>
@@ -187,10 +200,21 @@ namespace EventCommunity.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("EventCommunity.Core.Entities.CommunityEvent", b =>
+                {
+                    b.HasOne("EventCommunity.Core.Entities.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Creator");
+                });
+
             modelBuilder.Entity("EventCommunity.Core.Entities.Post", b =>
                 {
                     b.HasOne("EventCommunity.Core.Entities.User", "Author")
-                        .WithMany()
+                        .WithMany("Posts")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -207,35 +231,14 @@ namespace EventCommunity.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventCommunity.Core.Entities.PostRating", b =>
-                {
-                    b.HasOne("EventCommunity.Core.Entities.Post", "Post")
-                        .WithMany("Ratings")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EventCommunity.Core.Entities.User", "User")
-                        .WithMany("Ratings")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("EventCommunity.Core.Entities.Post", b =>
                 {
                     b.Navigation("Files");
-
-                    b.Navigation("Ratings");
                 });
 
             modelBuilder.Entity("EventCommunity.Core.Entities.User", b =>
                 {
-                    b.Navigation("Ratings");
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }

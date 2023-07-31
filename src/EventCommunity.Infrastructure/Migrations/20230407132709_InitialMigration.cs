@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EventCommunity.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreation : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -56,7 +56,9 @@ namespace EventCommunity.Infrastructure.Migrations
                     Title = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                     Posted = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    AuthorId = table.Column<int>(type: "int", nullable: false)
+                    AuthorId = table.Column<int>(type: "int", nullable: false),
+                    RatingPositive = table.Column<int>(type: "int", nullable: false),
+                    RatingNegative = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,10 +78,9 @@ namespace EventCommunity.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    AuthorId = table.Column<int>(type: "int", nullable: false),
                     PostId = table.Column<int>(type: "int", nullable: false),
-                    Uploaded = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Extension = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Path = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Uploaded = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -92,47 +93,10 @@ namespace EventCommunity.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "PostRatings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PostId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    Positive = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PostRatings", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PostRatings_Posts_PostId",
-                        column: x => x.PostId,
-                        principalTable: "Posts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PostRatings_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_PostFiles_PostId",
                 table: "PostFiles",
                 column: "PostId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PostRatings_PostId",
-                table: "PostRatings",
-                column: "PostId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PostRatings_UserId",
-                table: "PostRatings",
-                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Posts_AuthorId",
@@ -145,9 +109,6 @@ namespace EventCommunity.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "PostFiles");
-
-            migrationBuilder.DropTable(
-                name: "PostRatings");
 
             migrationBuilder.DropTable(
                 name: "RegisterRequests");

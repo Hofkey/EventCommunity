@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EventCommunity.Core.Entities
+namespace EventCommunity.API.Models.Dto
 {
-    public class BaseUser : BaseEntity
+    public class NewRegisterRequestDto
     {
         [Required(ErrorMessage = "E-mail address is required!"),
             EmailAddress(ErrorMessage = "Invalid e-mail address!")]
@@ -15,5 +15,10 @@ namespace EventCommunity.Core.Entities
         public string Lastname { get; set; } = string.Empty;
 
         public string PhoneNumber { get; set; } = string.Empty;
+    }
+
+    public class RegisterRequestDto : NewRegisterRequestDto
+    {
+        public int Id { get; set; }
     }
 }

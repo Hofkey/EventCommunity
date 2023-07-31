@@ -1,6 +1,7 @@
 ﻿using EventCommunity.Core.Entities;
 using EventCommunity.Core.Exceptions;
 using EventCommunity.Core.Interfaces;
+using EventCommunity.Shared.Security.Encryption;
 
 namespace EventCommunity.Core.Services.Register
 {
@@ -8,12 +9,15 @@ namespace EventCommunity.Core.Services.Register
     {
         private readonly IMailService mailService;
         private readonly IRepository<RegisterRequest> registerRequestRepository;
+        private readonly IRepository<Entities.User> userRespository;
 
-        public RegisterService(IMailService mailService, 
-            IRepository<RegisterRequest> registerRequestRepository)
+        public RegisterService(IMailService mailService,
+            IRepository<RegisterRequest> registerRequestRepository,
+            IRepository<Entities.User> userRespository)
         {
             this.mailService = mailService;
             this.registerRequestRepository = registerRequestRepository;
+            this.userRespository = userRespository;
         }
 
         public RegisterRequest? GetRegisterRequest(int id)
@@ -63,19 +67,46 @@ namespace EventCommunity.Core.Services.Register
 
             await registerRequestRepository.Update(request);
 
-            string content = "Jouw verzoek is goedgekeurd! Wij keuren het binnenkort goed, dus houd je mail in de gaten (ook de spam folder)!";
+            string content = $"Jouw verzoek is goedgekeurd! u kunt uw token ({request.Token}) gebruikern op: http://bruiloft.omnitudo.space/auth (de finalize tab.)!";
             mailService.Send(content, "Token aangemaakt.", request.Email);
         }
 
-        public Task DeleteRegisterRequest(int id)
+        public async Task DeleteRegisterRequest(int id)
         {
-            throw new NotImplementedException();
+            await registerRequestRepository.Delete(id);
         }
 
 
-        public Task RemindRegisterRequests()
+        public void RemindRegisterRequests()
         {
-            throw new NotImplementedException();
+            var requests = registerRequestRepository.Get(r => r.Id != 0);
+
+            foreach (var request in requests)
+            {
+                string content = $"Jouw token is nog niet gebruikt. Rond jouw registratie af! Token: {request.Token}";
+                mailService.Send(content, "Token aangemaakt.", request.Email);
+            }
+        }
+
+        public async Task RegisterUser(string token, string password)
+        {
+            var request = registerRequestRepository.Get(r => r.Token == token).SingleOrDefault();
+
+            if (request == null)
+            {
+                throw new EntityDoesNotExistException(typeof(RegisterRequest), token);
+            }
+
+            await userRespository.Create(new Entities.User
+            {
+                Firstname = request.Firstname,
+                Lastname = request.Lastname,
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
+                Password = PasswordHelper.GetHash(password)
+            });
+
+            await DeleteRegisterRequest(request.Id);
         }
     }
 }

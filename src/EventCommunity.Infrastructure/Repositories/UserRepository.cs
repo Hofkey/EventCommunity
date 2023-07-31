@@ -16,7 +16,7 @@ namespace EventCommunity.Infrastructure.Repositories
         {
             if (Get(x => x.Email == entity.Email).Any())
             {
-                throw new DuplicateEntityException("User", "Username", "User already exists!");
+                throw new DuplicateEntityException("User", "Email", "User already exists!");
             }
 
             entity.Password = PasswordHelper.GetHash(entity.Password);

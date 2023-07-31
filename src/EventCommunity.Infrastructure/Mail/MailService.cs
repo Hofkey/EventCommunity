@@ -41,3 +41,4 @@ namespace EventCommunity.Infrastructure.Mail
         }
 
     }
+}

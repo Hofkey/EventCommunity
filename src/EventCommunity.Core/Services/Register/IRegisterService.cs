@@ -55,6 +55,6 @@ namespace EventCommunity.Core.Services.Register
         /// 
         /// </summary>
         /// <returns></returns>
-        public Task RemindRegisterRequests();
+        public void RemindRegisterRequests();
     }
 }

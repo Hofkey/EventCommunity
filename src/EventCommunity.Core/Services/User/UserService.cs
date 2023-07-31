@@ -1,4 +1,5 @@
 ﻿using EventCommunity.Core.Enums;
+using EventCommunity.Core.Exceptions;
 using EventCommunity.Core.Interfaces;
 using EventCommunity.Shared.Security.Encryption;
 
@@ -15,7 +16,14 @@ namespace EventCommunity.Core.Services.User
 
         public Entities.User GetUser(int id)
         {
-            return userRepository.GetById(id);
+            var user = userRepository.GetById(id);
+
+            if (user == null)
+            {
+                throw new EntityDoesNotExistException(typeof(Entities.User), id);
+            }
+
+            return user;
         }
 
         public async Task<int> AddUser(Entities.User user)
@@ -26,8 +34,20 @@ namespace EventCommunity.Core.Services.User
         public async Task ChangeUserRole(int id, UserRole role)
         {
             var user = GetUser(id);
+
+            if (user == null)
+            {
+                throw new EntityDoesNotExistException(typeof(Entities.User), id);
+            }
+
             user.UserRole = role;
             await userRepository.Update(user);
+        }
+
+        public Entities.User? ValidateUser(string email, string password)
+        {
+            return ((IUserRepository)userRepository)
+                .ValidatePassword(email, password);
         }
 
         public async Task<bool> ChangeUserPassword(int id, string oldPassword, string newPassword)
@@ -44,6 +64,11 @@ namespace EventCommunity.Core.Services.User
             await userRepository.Update(user);
 
             return true;
+        }
+
+        public List<Entities.User> GetUsers()
+        {
+            return userRepository.Get(users => users.Id > 0).ToList();
         }
     }
 }

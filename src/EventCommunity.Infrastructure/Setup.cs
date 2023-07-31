@@ -1,6 +1,7 @@
 ﻿using EventCommunity.Core.Entities;
 using EventCommunity.Core.Interfaces;
 using EventCommunity.Infrastructure.Database;
+using EventCommunity.Infrastructure.Mail;
 using EventCommunity.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,8 +35,14 @@ namespace EventCommunity.Infrastructure
         {
             collection.AddScoped<IRepository<Post>, GenericRepository<Post>>();
             collection.AddScoped<IRepository<PostFile>, GenericRepository<PostFile>>();
-            collection.AddScoped<IRepository<PostRating>, GenericRepository<PostRating>>();
             collection.AddScoped<IRepository<User>, UserRepository>();
+            collection.AddScoped<IRepository<RegisterRequest>, GenericRepository<RegisterRequest>>();
+            collection.AddScoped<IRepository<CommunityEvent>, GenericRepository<CommunityEvent>>();
+        }
+
+        public static void SetupServices(IServiceCollection collection, string fromAdress, string fromPassword)
+        {
+            collection.AddSingleton<IMailService>(new MailService(fromAdress, "Tom & Nans Bruiloft", fromPassword));
         }
     }
 }

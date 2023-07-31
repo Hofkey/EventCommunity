@@ -16,10 +16,12 @@ namespace EventCommunity.Core.Entities
         [Required(ErrorMessage = "The author id is required!")]
         public int AuthorId { get; set; }
 
+        public int RatingPositive { get; set; }
+
+        public int RatingNegative { get; set; }
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public virtual User Author { get; set; }
-
-        public virtual ICollection<PostRating> Ratings { get; set; }
 
         public virtual ICollection<PostFile> Files { get; set; }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.

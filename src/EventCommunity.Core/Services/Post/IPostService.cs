@@ -37,10 +37,11 @@ namespace EventCommunity.Core.Services.Post
         List<Entities.Post> GetPostsByAuthor(int authorId);
 
         /// <summary>
-        /// Rate a post.
+        /// Gets the amount of posts in database.
+        /// Mainly used for pagination.
         /// </summary>
-        /// <param name="postRating">Post rating</param>
-        Task RatePost(PostRating postRating);
+        /// <returns>Amount of posts.</returns>
+        int GetPostCount();
 
         /// <summary>
         /// Create a post.
@@ -48,6 +49,12 @@ namespace EventCommunity.Core.Services.Post
         /// <param name="post">Post to create</param>
         /// <returns>Id of created post.</returns>
         Task<int> CreatePost(Entities.Post post);
+
+        /// <summary>
+        /// Add post files for a post.
+        /// </summary>
+        /// <param name="postFile">post file to add</param>
+        Task AddPostFile(PostFile postFile);
 
         /// <summary>
         /// UPdate a post.

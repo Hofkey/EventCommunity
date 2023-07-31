@@ -1,10 +1,13 @@
 ﻿using EventCommunity.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace EventCommunity.API.Models
+namespace EventCommunity.API.Models.Dto
 {
-    public class UserPOCO
+    public class UserDto
     {
+        [Required(ErrorMessage = "User needs an identifier!")]
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "E-mail address is required!"),
             EmailAddress(ErrorMessage = "Invalid e-mail address!")]
         public string Email { get; set; } = string.Empty;
